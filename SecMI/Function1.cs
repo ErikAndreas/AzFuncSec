@@ -25,14 +25,7 @@ namespace SecMI
             string sql = "SELECT * FROM test";
             using (var conn = new SqlConnection(Environment.GetEnvironmentVariable("DbConnStr")))
             {
-                /*var tokenProvider = new Azure.Identity.DefaultAzureCredential();
-                var token = await tokenProvider.GetTokenAsync(new Azure.Core.TokenRequestContext(new[] { "https://database.windows.net/.default" }, tenantId: "0549e999-9365-416b-987c-c2c4c4ae2785"));
-                conn.AccessToken = token.Token;
-                log.LogInformation(token.Token);*/
                 var result = await conn.QueryAsync<Data>(sql);
-                /*SqlCommand command = new SqlCommand(sql, conn);
-                await command.Connection.OpenAsync();
-                var result = await command.ExecuteScalarAsync();*/
                 return new OkObjectResult(result);
             }
         }
