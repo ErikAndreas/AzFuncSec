@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using System.IO;
 using Azure.Storage.Blobs;
 using System.Text;
+using Azure.Security.KeyVault.Secrets;
+using Azure.Identity;
 
 namespace SecMI
 {
@@ -20,8 +22,6 @@ namespace SecMI
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "sql")] HttpRequest req,
             ILogger log)
         {
-            log.LogInformation("C# HTTP trigger function processed a request.");
-
             string sql = "SELECT * FROM test";
             using (var conn = new SqlConnection(Environment.GetEnvironmentVariable("DbConnStr")))
             {
@@ -41,6 +41,21 @@ namespace SecMI
             string content = "file content";
             await blobClient.UploadAsync(new MemoryStream(Encoding.UTF8.GetBytes(content)), overwrite: true);
             return new OkObjectResult(content);
+        }
+
+
+        [FunctionName("KeyVault")]
+        public static async Task<IActionResult> KeyVault(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "keyvault")] HttpRequest req,
+        ILogger log)
+        {
+            // key vault secrets can also be fetched directly but this is slow and requires both Azure.Security.KeyVault.Secrets and Azure.Identity !
+            var client = new SecretClient(vaultUri: new Uri($"https://{Environment.GetEnvironmentVariable("KeyVaultName")}.vault.azure.net/"), new DefaultAzureCredential());
+            var secret = await client.GetSecretAsync("secret1");
+            log.LogInformation($"straight from key vault: {secret.Value.Value}");
+
+            // preferred 
+            return new OkObjectResult(Environment.GetEnvironmentVariable("SecretVar"));
         }
     }
 

@@ -4,18 +4,46 @@
 \- Microsoft Well Architected framework Security pillar 
 
 ## About
-This project explores options for using Azure Active Directory as the main mean of authentication and authorization for various Azure Resources from an Azure Function application.
+This project explores options for using Managed Identity and Azure Active Directory as the main mean of authentication and authorization ranther than connection strings or access keys for various Azure Resources from an Azure Function application. Setup should work locally. 
+
+The [DefaultAzureCredential](https://docs.microsoft.com/en-us/dotnet/api/overview/azure/identity-readme#defaultazurecredential) and [Managed Indentity](https://docs.microsoft.com/en-us/azure/app-service/overview-managed-identity) is central in all of these setups, read up on it!
+
+## Roadmap / TODO
+- IaC, create bicep files (and az cli scripts for things not supported by bicep, e.g., AAD stuff)
+- SignalR
+- Event/IoT hubs
 
 ## Functions
+
+### Key Vault
+Most fundamental to keep sensitive data away even though app settings/env vars are encrypted at rest.
+
+1. create key vault 
+2. create secret(s)
+3. add access policy for secret 'get' to func app with already set system assigned identity
+
+local setting/usage (local.settings.json)
+```json
+"SecretVar": "local (not so) secret"
+```
+app setting in az
+```json
+"SecretVar": "@Microsoft.KeyVault(VaultName=<key vault name>;SecretName=<secret name>)" 
+```
+Also see source for getting secrets directly from vault in code (not 'via' setting/env var)
+
+#### Links
+- https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references
+
 ### Azure SQLServer
-1. Create Azure SQLServer and database, only allow AAD auth
-2. Set AAD admin, preferably a group account and add whoever needs admin access
-3. Set firewall rules
-4. Test connection with e.g. SSMS using AAD - universal with mfa login
-5. Create a table ('test' is used here)
-6. Create function app, http triggered VS 2022, copy code from here
-7. Create Azure function app, set system assigned identity
-8. Add func app managed identity (function app name) as db user + roles
+1. create Azure SQLServer and database, only allow AAD auth
+2. set AAD admin, preferably a group account and add whoever needs admin access
+3. set firewall rules
+4. test connection with e.g. SSMS using AAD - universal with mfa login
+5. create a table ('test' is used here)
+6. create function app, http triggered VS 2022, copy code from here
+7. create Azure function app, set system assigned identity
+8. add func app managed identity (function app name) as db user + roles
 
 Sample local.settings.json
 ```json
