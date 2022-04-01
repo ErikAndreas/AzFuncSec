@@ -21,7 +21,6 @@
 
 # Deploy
 * make sure you're in the right subscription (change: >az account set --subscription "{subID|name}", verify: >az account show)
-* NB Stena metall IT std: `rg<##>-<SystemId>-<Environment>-<Region>` NZA systemId is 1023 and std region is EU West, envs: p, d, q, s, t
 * evalaute changes (what-if): >az deployment group what-if --resource-group {rg-appname-env} --template-file main.bicep
 
 # Assumptions
