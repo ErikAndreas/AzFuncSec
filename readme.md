@@ -4,7 +4,7 @@
 \- Microsoft Well Architected framework Security pillar 
 
 ## About
-This project explores options for using Managed Identity and Azure Active Directory as the main mean of authentication and authorization ranther than connection strings or access keys for various Azure Resources from an Azure Function application. Setup should work locally. 
+This project explores options for using Managed Identity and Azure Active Directory as the main mean of authentication and authorization rather than connection strings or access keys for various Azure Resources from an Azure Function application. Setup should work locally. 
 
 The [DefaultAzureCredential](https://docs.microsoft.com/en-us/dotnet/api/overview/azure/identity-readme#defaultazurecredential) and [Managed Indentity](https://docs.microsoft.com/en-us/azure/app-service/overview-managed-identity) is central in all of these setups, read up on it!
 
@@ -12,6 +12,16 @@ The [DefaultAzureCredential](https://docs.microsoft.com/en-us/dotnet/api/overvie
 - IaC, create bicep files (and az cli scripts for things not supported by bicep, e.g., AAD stuff)
 - SignalR
 - Event/IoT hubs
+
+## IaC with Bicep
+* intall bicep extension to VS code (optional)
+* make sure az cli is intalled
+```
+>az bicep install
+>az login 
+```
+* run init, see source comments for details
+
 
 ## Functions
 
