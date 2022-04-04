@@ -4,6 +4,7 @@ param location string = resourceGroup().location
 param softDelete bool
 param kvName string = ''
 param keysToVault bool = false
+param allowSharedKeyAccess bool = true
 
 resource stg 'Microsoft.Storage/storageAccounts@2021-04-01' = {
   name: saName
@@ -14,6 +15,7 @@ resource stg 'Microsoft.Storage/storageAccounts@2021-04-01' = {
   kind: 'StorageV2'
   properties:{
     minimumTlsVersion:'TLS1_2'
+    allowSharedKeyAccess: allowSharedKeyAccess
   }
 }
 

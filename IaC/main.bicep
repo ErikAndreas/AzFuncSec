@@ -60,9 +60,10 @@ module appStorageStorageAccountModule 'storageAccount.bicep' = {
   params: {
     saName: toLower('st01${appName}${env}')
     location: location
-    sku: 'Standard_RAGRS'
+    sku: 'Standard_LRS'
     softDelete: true
     kvName: kvName
+    allowSharedKeyAccess: false
   }
 }
 
@@ -97,17 +98,14 @@ module addKvAccessPolicy 'addKvAccessPolicy.bicep' = if (!empty(kvName)) {
   ]
 }
 
-/*
 module sqlModule 'sqlServer.bicep' = {
   name:'db01-${appName}-${env}'
   params:{
     sqlserverName: 'sql01-${appName}-${env}'
     databaseName: 'sqldb01-${appName}-${env}'
-    sqlAdministratorLogin: 'adm-${appName}-${env}'
-    sqlAdministratorLoginPassword: kv.getSecret('sqlServerAdminPwd')
     location: location
   }
-}*/
+}
 
 module fnAppConfigModule 'funcAppSettings.bicep' = {
   name: 'func-conf-${appName}-${env}'
@@ -117,6 +115,8 @@ module fnAppConfigModule 'funcAppSettings.bicep' = {
     appInsightsConnectionString: appInsightsModule.outputs.appInsightsConnectionString
     funcAppName: fnAppModule.name
     connStrServiceUri: 'https://${appStorageStorageAccountModule.name}.blob.core.windows.net/'
+    dbName: sqlModule.outputs.dbName
+    dbServer: sqlModule.outputs.serverName
   }
   dependsOn:[
     fnAppModule

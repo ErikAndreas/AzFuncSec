@@ -1,8 +1,5 @@
 // https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/bicep-functions-resource#example
 // transparent data encryption seems to be enabled by default
-param sqlAdministratorLogin string
-@secure()
-param sqlAdministratorLoginPassword string
 param location string = resourceGroup().location
 param sqlserverName string
 param databaseName string
@@ -12,8 +9,8 @@ resource sqlserver 'Microsoft.Sql/servers@2021-02-01-preview' = {
   name: sqlserverName
   location: location
   properties: {
-    administratorLogin: sqlAdministratorLogin
-    administratorLoginPassword: sqlAdministratorLoginPassword
+    administratorLogin: 'sqlAdministratorLogin' // will be overridden by aad
+    administratorLoginPassword: 'sqlAdmPwd01!$' // will be overridden by aad
     version: '12.0'
     minimalTlsVersion: '1.2'
   }
@@ -43,3 +40,5 @@ resource fw_AzureServices 'Microsoft.Sql/servers/firewallRules@2021-02-01-previe
   }
 }
 
+output serverName string = sqlserverName
+output dbName string = databaseName

@@ -21,6 +21,21 @@ The [DefaultAzureCredential](https://docs.microsoft.com/en-us/dotnet/api/overvie
 >az login 
 ```
 * run init, see source comments for details
+* run main, see source comments for details, note: will create sqlserver with a login
+* run aad.ps1, will: 
+  * setup aad group w logged in user + func app managed identity
+  * setup roles for storage access 
+  * create sqlserver admin group, set sqlserver aad admin and enable ad only auth (latter could be done from bicep but would require admin group sid)
+* enpoint /api/storage should work now
+* execute script in db, either via az portal Query editor or by logging into db via e.g. SSMS (auth AAD - Universal with MFA)
+```sql
+// change to your func app name!
+CREATE USER [func-app-name] FROM EXTERNAL PROVIDER;
+ALTER ROLE db_datareader ADD MEMBER [func-app-name];
+ALTER ROLE db_datawriter ADD MEMBER [func-app-name];
+```
+* NOTE!!! main script can't be run again unless sql aad auth only is disabled, you need to disable it to re-run main script
+* seed table 'test' (See Data class) to run /api/sql endpoint
 
 
 ## Functions
