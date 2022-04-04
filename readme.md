@@ -9,7 +9,6 @@ This project explores options for using Managed Identity and Azure Active Direct
 The [DefaultAzureCredential](https://docs.microsoft.com/en-us/dotnet/api/overview/azure/identity-readme#defaultazurecredential) and [Managed Indentity](https://docs.microsoft.com/en-us/azure/app-service/overview-managed-identity) is central in all of these setups, read up on it!
 
 ## Roadmap / TODO
-- IaC, create bicep files (and az cli scripts for things not supported by bicep, e.g., AAD stuff)
 - SignalR
 - Event/IoT hubs
 
@@ -22,6 +21,7 @@ The [DefaultAzureCredential](https://docs.microsoft.com/en-us/dotnet/api/overvie
 ```
 * run init, see source comments for details
 * run main, see source comments for details, note: will create sqlserver with a login
+* review aad ps for naming
 * run aad.ps1, will: 
   * setup aad group w logged in user + func app managed identity
   * setup roles for storage access 

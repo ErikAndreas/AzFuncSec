@@ -4,9 +4,10 @@
 $appName = $args[0]
 $env = $args[1]
 $groupName=($appName+"-"+$env+"-sec")
-$servicePrincipal = az ad sp list --display-name func01-mitestiac-d --query [0].objectId # $args[2]
+$spName = ("func01-"+$appName +"-"+$env) # service principal name/function app name
+$servicePrincipalId = az ad sp list --display-name $spName --query [0].objectId # $args[2]
 az ad group create --display-name $groupName --mail-nickname $groupName
-az ad group member add --group $groupName --member-id $servicePrincipal
+az ad group member add --group $groupName --member-id $servicePrincipalId
 $signedInUser = az ad signed-in-user show --query objectId
 az ad group member add --group $groupName --member-id $signedInUser
 
