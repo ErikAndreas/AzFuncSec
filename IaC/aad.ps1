@@ -25,5 +25,8 @@ az ad group member add --group $sqlAdminGroupName --member-id $signedInUser
 $rg = ("rg01-"+$appName+"-"+$env)
 $sn = ("sql01-"+$appName+"-"+$env)
 $sqlGroupName = az ad group show --group $sqlAdminGroupName --query objectId -o tsv
-az sql server ad-admin create --resource-group $rg --server $sn --object-id $sqlGroupName -u $sqlAdminGroupName # all params seems to, contrary to docs, be required
+az sql server ad-admin create --resource-group $rg --server $sn --object-id $sqlGroupName -u $sqlAdminGroupName # all params seems to, contrary to docs, be required, also objectId can't be quoted
 az sql server ad-only-auth enable --resource-group $rg --name $sn
+
+# signalR MI
+az role assignment create --assignee $groupId --role "SignalR Service Owner"

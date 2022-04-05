@@ -107,6 +107,15 @@ module sqlModule 'sqlServer.bicep' = {
   }
 }
 
+module signalRModule 'signalR.bicep' = {
+  name:'sigr01-${appName}-${env}'
+  params:{
+    name: 'sigr01-${appName}-${env}'
+    location: location
+    env: env
+  }
+}
+
 module fnAppConfigModule 'funcAppSettings.bicep' = {
   name: 'func-conf-${appName}-${env}'
   params: {
@@ -117,6 +126,7 @@ module fnAppConfigModule 'funcAppSettings.bicep' = {
     connStrServiceUri: 'https://${appStorageStorageAccountModule.name}.blob.core.windows.net/'
     dbName: sqlModule.outputs.dbName
     dbServer: sqlModule.outputs.serverName
+    signalRServiceUri: 'https://${signalRModule.name}.service.signalr.net'
   }
   dependsOn:[
     fnAppModule

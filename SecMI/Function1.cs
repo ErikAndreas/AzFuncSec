@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
+using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
@@ -56,6 +57,21 @@ namespace SecMI
 
             // preferred 
             return new OkObjectResult(Environment.GetEnvironmentVariable("SecretVar"));
+        }
+
+        [FunctionName("SignalR")]
+        public static async Task<IActionResult> SignalR(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "signalr")] HttpRequest req,
+        [SignalR(HubName = "serverless")] IAsyncCollector<SignalRMessage> signalRMessages,
+        ILogger log)
+        {
+            await signalRMessages.AddAsync(
+                new SignalRMessage
+                {
+                    Target = "newMessage",
+                    Arguments = new[] { $"Hi at {new DateTime()}" }
+                });
+            return new OkObjectResult("sent");
         }
     }
 

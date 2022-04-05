@@ -9,7 +9,6 @@ This project explores options for using Managed Identity and Azure Active Direct
 The [DefaultAzureCredential](https://docs.microsoft.com/en-us/dotnet/api/overview/azure/identity-readme#defaultazurecredential) and [Managed Indentity](https://docs.microsoft.com/en-us/azure/app-service/overview-managed-identity) is central in all of these setups, read up on it!
 
 ## Roadmap / TODO
-- SignalR
 - Event/IoT hubs
 
 ## IaC with Bicep
@@ -117,3 +116,17 @@ sample settings, note: none of this can coexist as setting - must be one of
 - https://docs.microsoft.com/en-us/azure/azure-functions/functions-reference?tabs=queue#local-development-with-identity-based-connections
 - https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-storage-blob-trigger?tabs=csharp#identity-based-connections
 - https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-storage-blob#storage-extension-5x-and-higher
+
+### SignalR
+1. Create serverless SignalR service, disable Keys -> Access Key
+2. Add role assignment "SignalR Service Owner" (not "SignalR App Server") on SignalR service (IAM) to func app managed identity (and your user for local dev access) or preferably a group incl app id and devs (role assignments take time to be in effect)
+3. For local dev add 
+```json
+    "AzureSignalRConnectionString:serviceUri": "https://<servicename>.service.signalr.net"
+```
+4. az func app setting key <CONNECTION_NAME_PREFIX>__serviceUri, same value as local
+
+#### Sources
+- https://docs.microsoft.com/en-us/azure/azure-signalr/signalr-howto-authorize-managed-identity
+- https://devblogs.microsoft.com/azure-sdk/introducing-azure-identity-support-in-the-azure-functions-signalr-extension-beta/
+- https://docs.microsoft.com/en-us/azure/templates/microsoft.signalrservice/signalr?tabs=bicep

@@ -6,6 +6,7 @@ param storageAccountConnectionString string
 param connStrServiceUri string
 param dbServer string
 param dbName string
+param signalRServiceUri string
 
 resource functionAppAppsettings 'Microsoft.Web/sites/config@2020-12-01' = {
   name: '${funcAppName}/appsettings'
@@ -19,6 +20,7 @@ resource functionAppAppsettings 'Microsoft.Web/sites/config@2020-12-01' = {
     WEBSITE_CONTENTSHARE: toLower(funcAppName)
     StorageConnStr__serviceUri: connStrServiceUri
     DbConnStr: 'Server=${dbServer}.database.windows.net; Authentication=Active Directory Default; Database=${dbName};'
+    AzureSignalRConnectionString__serviceUri: signalRServiceUri
   }
 }
 
