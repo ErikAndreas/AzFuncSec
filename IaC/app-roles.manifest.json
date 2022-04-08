@@ -1,0 +1,20 @@
+[
+    {
+        "allowedMemberTypes": [
+            "User"
+        ],
+        "description": "Role type one",
+        "displayName": "Role1",
+        "isEnabled": true,
+        "value": "Role1"
+    },
+    {
+        "allowedMemberTypes": [
+            "User"
+        ],
+        "description": "Role type two",
+        "displayName": "Role2",
+        "isEnabled": true,
+        "value": "Role2"
+    }
+]

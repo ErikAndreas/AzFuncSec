@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>msal</title>
+    <script type="text/javascript" src="https://alcdn.msauth.net/browser/2.21.0/js/msal-browser.min.js"></script>
+</head>
+<body>
+    <button onclick="signIn('redirect')">signin</button>
+    <script type="text/javascript">
+        const msalConfig = {
+            auth: {
+                clientId: "d7293498-ef8c-45eb-a838-6335ee2c035d", // az aad client/app id
+                authority: "https://login.microsoftonline.com/0549e999-9365-416b-987c-c2c4c4ae2785" // az tenant/directory id
+            },
+            cache: {
+                cacheLocation: "sessionStorage", // This configures where your cache will be stored
+                storeAuthStateInCookie: false, // Set this to "true" if you are having issues on IE11 or Edge
+            },
+            system: {
+                loggerOptions: {
+                    loggerCallback: (level, message, containsPii) => {
+                        if (containsPii) {
+                            return;
+                        }
+                        switch (level) {
+                            case msal.LogLevel.Error:
+                                console.error(message);
+                                return;
+                            case msal.LogLevel.Info:
+                                console.info(message);
+                                return;
+                            case msal.LogLevel.Verbose:
+                                console.debug(message);
+                                return;
+                            case msal.LogLevel.Warning:
+                                console.warn(message);
+                                return;
+                        }
+                    }
+                }
+            }
+        };
+
+        // Add here scopes for id token to be used at MS Identity Platform endpoints.
+        const loginRequest = {
+            scopes: []
+        };
+
+        const apiRequest = {
+            scopes: ["d7293498-ef8c-45eb-a838-6335ee2c035d/.default"]
+        }
+
+        // Add here scopes for access token to be used at MS Graph API endpoints.
+        const tokenRequest = {
+            scopes: ["Mail.Read"],
+            forceRefresh: false // Set this to "true" to skip a cached token and go to the server to get a new token
+        };
+
+        const silentRequest = {
+            scopes: ["openid", "profile"]
+        };
+
+        const logoutRequest = {}
+
+        let accountId = "";
+
+        // Create the main myMSALObj instance
+        // configuration parameters are located at authConfig.js
+        const myMSALObj = new msal.PublicClientApplication(msalConfig);
+
+        // Redirect: once login is successful and redirects with tokens, call Graph API
+        myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
+            console.error(err);
+        });
+
+        function handleResponse(resp) {
+            if (resp !== null) {
+                accountId = resp.account.homeAccountId;
+                myMSALObj.setActiveAccount(resp.account);
+                console.log(resp.account);
+                loggedIn();
+            } else {
+                // need to call getAccount here?
+                const currentAccounts = myMSALObj.getAllAccounts();
+                if (!currentAccounts || currentAccounts.length < 1) {
+                    return;
+                } else if (currentAccounts.length > 1) {
+                    // Add choose account code here
+                } else if (currentAccounts.length === 1) {
+                    const activeAccount = currentAccounts[0];
+                    myMSALObj.setActiveAccount(activeAccount);
+                    accountId = activeAccount.homeAccountId;
+                    console.log(activeAccount);
+                    loggedIn()
+                }
+            }
+        }
+
+        async function signIn(method) {
+            return myMSALObj.loginRedirect(loginRequest)
+        }
+
+        function signOut(interactionType) {
+            const logoutRequest = {
+                account: myMSALObj.getAccountByHomeId(accountId)
+            };
+
+            myMSALObj.logoutRedirect(logoutRequest);
+            
+        }
+
+        // This function can be removed if you do not need to support IE
+        async function getTokenRedirect(request, account) {
+            return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
+                console.log("silent token acquisition fails.");
+                if (error instanceof msal.InteractionRequiredAuthError) {
+                    // fallback to interaction when silent call fails
+                    console.log("acquiring token using redirect");
+                    myMSALObj.acquireTokenRedirect(request);
+                } else {
+                    console.error(error);
+                }
+            });
+        }
+
+        function callAPi(endpoint, accessToken, callback) {
+            const headers = new Headers();
+            const bearer = `Bearer ${accessToken}`;
+
+            headers.append("Authorization", bearer);
+
+            const options = {
+                method: "GET",
+                headers: headers
+            };
+
+            console.log('request made to API at: ' + new Date().toString());
+
+            fetch(endpoint, options)
+                .then(response => response.json())
+                .then(response => callback(response, endpoint))
+                .catch(error => console.log(error));
+        }
+
+        function apiResponse(response, endpoint) {
+            console.log(response);
+        }
+
+        async function loggedIn() {
+            if (accountId) {
+                const response = await getTokenRedirect(apiRequest).catch(error => {
+                    console.log(error);
+                });
+                console.log(response);
+                callAPi('/api/secendpoint', response.accessToken, apiResponse)
+            }
+        }
+    </script>
+</body>
+</html>

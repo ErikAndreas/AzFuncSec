@@ -33,8 +33,9 @@ CREATE USER [func-app-name] FROM EXTERNAL PROVIDER;
 ALTER ROLE db_datareader ADD MEMBER [func-app-name];
 ALTER ROLE db_datawriter ADD MEMBER [func-app-name];
 ```
-* NOTE!!! main script can't be run again unless sql aad auth only is disabled, you need to disable it to re-run main script
+* NOTE!!! main script can't be run again unless sql aad auth only is disabled, you need to disable it (seee rmsqlaad.ps1) to re-run main script
 * seed table 'test' (See Data class) to run /api/sql endpoint
+* run aadappauth to create aad client app for aad protection on endpoint /api/secendpoint (which is called from /api/index via xhr - browse to /api/index to login to your aad)
 
 
 ## Functions

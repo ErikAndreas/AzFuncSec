@@ -13,11 +13,95 @@ using Azure.Storage.Blobs;
 using System.Text;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Identity;
+using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using System.Threading;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Newtonsoft.Json;
 
 namespace SecMI
 {
     public static class SecMI
     {
+        private const string AUTH_HEADER_NAME = "Authorization";
+        private const string BEARER_PREFIX = "Bearer ";
+        private static string ISSUER = $"https://login.microsoftonline.com/{Environment.GetEnvironmentVariable("AAD_TENANTID")}/v2.0";  
+        private static string AUDIENCE = Environment.GetEnvironmentVariable("AAD_CLIENTID");
+
+        [FunctionName("Index")]
+        public static IActionResult GetHomePage(
+            [HttpTrigger(AuthorizationLevel.Anonymous)] HttpRequest req, Microsoft.Azure.WebJobs.ExecutionContext context)
+        {
+            var path = Path.Combine(context.FunctionAppDirectory, "site", "index.html");
+            return new ContentResult
+            {
+                Content = File.ReadAllText(path),
+                ContentType = "text/html",
+            };
+        }
+
+        [FunctionName("SecuredEndpoint")]
+        public static async Task<IActionResult> SecuredEndpoint(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "secendpoint")] HttpRequest req,
+            ILogger log)
+        {
+            var accessToken = "";
+            // sample code validating accessToken
+            if (req.Headers.ContainsKey(AUTH_HEADER_NAME) &&
+                req.Headers[AUTH_HEADER_NAME].ToString().StartsWith(BEARER_PREFIX, StringComparison.OrdinalIgnoreCase))
+            {
+                accessToken = req.Headers[AUTH_HEADER_NAME].ToString().Substring(BEARER_PREFIX.Length);
+            }
+            else
+            {
+                return new ForbidResult();
+            }
+
+            HttpDocumentRetriever documentRetriever = new HttpDocumentRetriever { RequireHttps = ISSUER.StartsWith("https://", StringComparison.OrdinalIgnoreCase) };
+
+            var _configurationManager = new ConfigurationManager<OpenIdConnectConfiguration>(
+                $"https://login.microsoftonline.com/{Environment.GetEnvironmentVariable("AAD_TENANTID")}/v2.0/.well-known/openid-configuration",
+                new OpenIdConnectConfigurationRetriever(),
+                documentRetriever);
+
+            OpenIdConnectConfiguration openIdConfig = await _configurationManager.GetConfigurationAsync(CancellationToken.None);
+
+            TokenValidationParameters validationParameters = new TokenValidationParameters
+            {
+                RequireSignedTokens = true,
+                ValidAudience = AUDIENCE,
+                ValidateAudience = true,
+                ValidIssuer = ISSUER,
+                ValidateIssuer = true,
+                ValidateIssuerSigningKey = true,
+                ValidateLifetime = true,
+                IssuerSigningKeys = openIdConfig.SigningKeys
+            };
+
+            ClaimsPrincipal principal = new ClaimsPrincipal();
+            try
+            {
+                log.LogDebug("Validation starting");
+                JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+                tokenHandler.InboundClaimTypeMap.Clear();
+                principal = tokenHandler.ValidateToken(accessToken, validationParameters, out SecurityToken token);
+                log.LogDebug("Validation complete");
+                foreach (Claim c in principal.Claims)
+                {
+                    log.LogInformation($"{c.Type} {c.Value}");
+                }
+            }
+            catch (Exception ex)
+            {
+                log.LogError(ex.Message);
+                return new ForbidResult();
+            }
+
+            return new JsonResult("ok");
+        }
+
         [FunctionName("SQLServer")]
         public static async Task<IActionResult> SQLServer(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "sql")] HttpRequest req,
