@@ -116,16 +116,20 @@ module signalRModule 'signalR.bicep' = {
   }
 }
 
+var environ = environment()
+
+
 module fnAppConfigModule 'funcAppSettings.bicep' = {
   name: 'func-conf-${appName}-${env}'
   params: {
-    storageAccountConnectionString: kv.getSecret('${fnAppStorageAccountModule.name}ConnStr')
+    //storageAccountConnectionString: kv.getSecret('${fnAppStorageAccountModule.name}ConnStr')
+    stConnStrKvKey: '${fnAppStorageAccountModule.name}ConnStr'
+    kvName: kvName
     appInsightsKey: appInsightsModule.outputs.appInsightsKey
     appInsightsConnectionString: appInsightsModule.outputs.appInsightsConnectionString
     funcAppName: fnAppModule.name
-    connStrServiceUri: 'https://${appStorageStorageAccountModule.name}.blob.core.windows.net/'
-    dbName: sqlModule.outputs.dbName
-    dbServer: sqlModule.outputs.serverName
+    connStrServiceUri: 'https://${appStorageStorageAccountModule.name}.blob.${environ.suffixes.storage}/'
+    dbConnStr: 'Server=${sqlModule.outputs.serverName}${environ.suffixes.sqlServerHostname}; Authentication=Active Directory Default; Database=${sqlModule.outputs.dbName};'
     signalRServiceUri: 'https://${signalRModule.name}.service.signalr.net'
   }
   dependsOn:[

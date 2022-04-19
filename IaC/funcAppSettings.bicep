@@ -1,11 +1,12 @@
 param funcAppName string
 param appInsightsKey string
 param appInsightsConnectionString string
-@secure()
-param storageAccountConnectionString string
+/*@secure()
+param storageAccountConnectionString string*/
+param stConnStrKvKey string
+param kvName string
 param connStrServiceUri string
-param dbServer string
-param dbName string
+param dbConnStr string
 param signalRServiceUri string
 
 resource functionAppAppsettings 'Microsoft.Web/sites/config@2020-12-01' = {
@@ -13,13 +14,15 @@ resource functionAppAppsettings 'Microsoft.Web/sites/config@2020-12-01' = {
   properties: {
     APPINSIGHTS_INSTRUMENTATIONKEY: appInsightsKey // https://stackoverflow.com/questions/60691568/why-do-i-need-both-appinsights-instrumentationkey-and-applicationinsights-connec
     APPLICATIONINSIGHTS_CONNECTION_STRING: appInsightsConnectionString
-    AzureWebJobsStorage: storageAccountConnectionString
+    //AzureWebJobsStorage: storageAccountConnectionString
+    AzureWebJobsStorage: '@Microsoft.KeyVault(VaultName=${kvName};SecretName=${stConnStrKvKey})'
     FUNCTIONS_EXTENSION_VERSION: '~4'
     FUNCTIONS_WORKER_RUNTIME: 'dotnet'
-    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: storageAccountConnectionString
+    //WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: storageAccountConnectionString
+    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: '@Microsoft.KeyVault(VaultName=${kvName};SecretName=${stConnStrKvKey})'
     WEBSITE_CONTENTSHARE: toLower(funcAppName)
     StorageConnStr__serviceUri: connStrServiceUri
-    DbConnStr: 'Server=${dbServer}.database.windows.net; Authentication=Active Directory Default; Database=${dbName};'
+    DbConnStr: dbConnStr
     AzureSignalRConnectionString__serviceUri: signalRServiceUri
   }
 }
